@@ -1,15 +1,22 @@
 /*  1 - Basic feature: the main menu
---------------------------------------------------------------------------------------- */
-//  When the user chooses the homepage option, you should display the list of posts from the getHomepage function you created previously. For each post, list at least some of the info that appears on reddit: title, url, votes, username. After the list of posts is displayed, you should display the main menu again.
+---------------------------------------------------------------------------------------
+When the user chooses the homepage option, you should display the list of posts from the getHomepage function you created previously. For each post, list at least some of the info that appears on reddit: title, url, votes, username. After the list of posts is displayed, you should display the main menu again.
 
 
-/*  2 - Basic feature: subreddit posts
---------------------------------------------------------------------------------------- */
-//  When the user chooses the subreddit posts option, you should ask him -- again using inquirer -- which subreddit he wants to see. Then, display the list of posts in the same way as the homepage.
+2 - Basic feature: subreddit posts
+---------------------------------------------------------------------------------------
+When the user chooses the subreddit posts option, you should ask him -- again using inquirer -- which subreddit he wants to see. Then, display the list of posts in the same way as the homepage.
 
-/*  3 - Feature: list of subreddits *
---------------------------------------------------------------------------------------- */
-//  When the user chooses the list of subreddits option, you should load the list of subreddits using the getSubreddits function you created previously. Then, using inquirer, show the list of subreddits to the user. The user will be able to choose a subreddit to display its posts, or go back to the main menu. You can use an Inquirer Separator to create a visual separation between the list of subreddits and the "go back to main menu" option.
+
+3 - Feature: list of subreddits *
+--------------------------------------------------------------------------------------
+When the user chooses the list of subreddits option, you should load the list of subreddits using the getSubreddits function you created previously. Then, using inquirer, show the list of subreddits to the user. The user will be able to choose a subreddit to display its posts, or go back to the main menu. You can use an Inquirer Separator to create a visual separation between the list of subreddits and the "go back to main menu" option.
+
+
+4 - Feature: post selection and "image" display **
+--------------------------------------------------------------------------------------
+When the user is shown a list of posts, instead of going back to the main menu every post should be selectable -- again using inquirer. When selecting a post, the terminal screen should be cleared and only that post should be displayed (title + url + username). In addition to this, if the URL of the post turns out to be an image -- ends in .jpg, .gif or .png -- you should use the image-to-ascii module to load the image and display it on the command line. After the post details are displayed, you should show the main menu again.
+*/
 
 
 // import my reddit module file
@@ -37,6 +44,7 @@ function isEmpty(obj) {
     }
     return true && JSON.stringify(obj) === JSON.stringify({});
 }
+
 
 // Menu
 var menuChoices = [
@@ -130,13 +138,15 @@ function redditRun() {
                 }
                 
                 subMenu(answers.menu, function(srAnswer){
-                    console.log("You are browsing the " + srAnswer + " subreddit!\n");
+                    console.log("You are browsing the " + "'".magenta + srAnswer.magenta + "'".magenta + " subreddit!\n");
                     reddit.getSubreddit(srAnswer, function(subRedName){
                 
                         var srObj = {};
+                        var postArr = [];
                         subRedName.data.children.forEach(function(x, index) {
                             // build subreddit object
-                            srObj[subRedName.data.children[index].data.id] = {
+                            srObj [subRedName.data.children[index].data.id] = {
+                                id:subRedName.data.children[index].data.id,
                                 title:subRedName.data.children[index].data.title,
                                 url:subRedName.data.children[index].data.url,
                                 ups:subRedName.data.children[index].data.ups,
@@ -148,13 +158,20 @@ function redditRun() {
                         });
         
                         for(var prop in srObj) {
-                            postedTime(srObj[prop].created, currentTime);
-                            console.log(srObj[prop].title.bold + "\n" + srObj[prop].url.blue + "\nsubmitted: ".red + posted + " | ".red + up + srObj[prop].ups + " | ".red + dwn + srObj[prop].downs + " | author: ".red + srObj[prop].author + " | subreddit: ".red + srObj[prop].subredditName + "\n");
+                            postedTime(srObj[prop].created, currentTime); // calculate time diff
+                            // push posts to an array, formatted for output
+                            postArr.push(srObj[prop].title.bold + "\n" + srObj[prop].url.blue + "\nsubmitted: ".red + posted + " | ".red + up + srObj[prop].ups + " | ".red + dwn + srObj[prop].downs + " | author: ".red + srObj[prop].author + " | subreddit: ".red + srObj[prop].subredditName + "\n");
                         }
+                        postArr.forEach(function(x, index) {
+                            console.log(postArr[index]);
+                        });
+
                         // Error msg for if the subreddit name entered by the user doesn't exist
                         if (isEmpty(srObj) === true) {
-                            console.log("Sorry, " + srAnswer + " is not actually a subreddit, please enter a different subreddit or try choosing from the list of popular subreddits in the menu below.\n");
+                            console.log("Sorry, '" + srAnswer + "' is not actually a subreddit, please enter a different subreddit or try choosing from the list of popular subreddits in the menu below.\n");
                         }
+                        
+                        
                         redditRun();
                     });
                 });
