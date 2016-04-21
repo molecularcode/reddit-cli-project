@@ -1,11 +1,16 @@
-/*  Basic feature: the main menu
+/*  1 - Basic feature: the main menu
 --------------------------------------------------------------------------------------- */
 //  When the user chooses the homepage option, you should display the list of posts from the getHomepage function you created previously. For each post, list at least some of the info that appears on reddit: title, url, votes, username. After the list of posts is displayed, you should display the main menu again.
 
 
-/*  Basic feature: subreddit posts
+/*  2 - Basic feature: subreddit posts
 --------------------------------------------------------------------------------------- */
 //  When the user chooses the subreddit posts option, you should ask him -- again using inquirer -- which subreddit he wants to see. Then, display the list of posts in the same way as the homepage.
+
+/*  3 - Feature: list of subreddits :star:
+--------------------------------------------------------------------------------------- */
+//  When the user chooses the list of subreddits option, you should load the list of subreddits using the getSubreddits function you created previously. Then, using inquirer, show the list of subreddits to the user. The user will be able to choose a subreddit to display its posts, or go back to the main menu. You can use an Inquirer Separator to create a visual separation between the list of subreddits and the "go back to main menu" option.
+
 
 // import my reddit module file
 var reddit = require("./lib/reddit.js");
@@ -24,6 +29,13 @@ var dwn = emoji.get('thumbsdown').red;
 // Functions
 function convertLower(str) {
     return str.toLowerCase().replace(/\s+/g, '');
+}
+function isEmpty(obj) {
+    for(var prop in obj) {
+        if(obj.hasOwnProperty(prop))
+            return false;
+    }
+    return true && JSON.stringify(obj) === JSON.stringify({});
 }
 
 // Menu
@@ -67,13 +79,14 @@ function redditRun() {
                             ups:result.data.children[index].data.ups,
                             downs:result.data.children[index].data.downs,
                             author:result.data.children[index].data.author,
-                            created:result.data.children[index].data.created_utc
+                            created:result.data.children[index].data.created_utc,
+                            subredditName:result.data.children[index].data.subreddit
                         };
                     });
 
                     for(var prop in hpObj) {
                         postedTime(hpObj[prop].created, currentTime);
-                        console.log(hpObj[prop].title.bold + "\n" + hpObj[prop].url.blue + "\nsubmitted: ".red + posted + " | ".red + up + hpObj[prop].ups + " | ".red + dwn + hpObj[prop].downs + " | author: ".red + hpObj[prop].author + "\n");
+                        console.log(hpObj[prop].title.bold + "\n" + hpObj[prop].url.blue + "\nsubmitted: ".red + posted + " | ".red + up + hpObj[prop].ups + " | ".red + dwn + hpObj[prop].downs + " | author: ".red + hpObj[prop].author + " | subreddit: ".red + hpObj[prop].subredditName + "\n");
                     }
                     console.log(redditRun());
                 });
@@ -106,6 +119,10 @@ function redditRun() {
                         for(var prop in srObj) {
                             postedTime(srObj[prop].created, currentTime);
                             console.log(srObj[prop].title.bold + "\n" + srObj[prop].url.blue + "\nsubmitted: ".red + posted + " | ".red + up + srObj[prop].ups + " | ".red + dwn + srObj[prop].downs + " | author: ".red + srObj[prop].author + " | subreddit: ".red + srObj[prop].subredditName + "\n");
+                        }
+                        // Error msg for if the subreddit name entered by the user doesn't exist
+                        if (isEmpty(srObj) === true) {
+                            console.log("Sorry, " + subrName + " is not actually a subreddit, please enter a different subreddit or try choosing from the list of subreddits in the menu below.\n");
                         }
                         console.log(redditRun());
                     });
