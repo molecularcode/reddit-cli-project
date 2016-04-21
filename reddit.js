@@ -41,7 +41,7 @@ function isEmpty(obj) {
 // Menu
 var menuChoices = [
     {name: 'Show reddit homepage', value: 'HOMEPAGE'},
-    {name: 'Show subreddit', value: 'SUBREDDIT'},
+    {name: 'Choose a subreddit', value: 'SUBREDDIT'},
     {name: 'List popular subreddits', value: 'SUBREDDITS'}
 ];
 
@@ -91,21 +91,48 @@ function redditRun() {
                     console.log(redditRun());
                 });
             }
-            // If users wants a subreddit and allow user to enter the name of the subreddit
+            
+            // If users wants a subreddit and allow user to enter the name of the subreddit or choose from a list of popular subreddits
             else if(answers.menu === 'SUBREDDIT' || answers.menu === 'SUBREDDITS') {
-                
-                
-                
-                
-                inquirer.prompt({
-                    type: 'inputs',
-                    name: 'subreddit',
-                    message: 'Which subreddit do you want to browse?',
-                }).then(function(answer) {
-                    var subrName = convertLower(answer.subreddit);
-                    console.log("You are browsing the " + subrName + " subreddit!\n");
-                    reddit.getSubreddit(subrName, function(subRedName){
+
+                function subMenu(type, callback){
+                    if(type === 'SUBREDDIT') {
+                        inquirer.prompt({
+                            type: 'inputs',
+                            name: 'subreddit',
+                            message: 'Which subreddit do you want to browse?',
+                        }).then(function (answer) {
+                            var subrName = convertLower(answer.subreddit);
+                            callback(subrName);
+                        });
+                    }
+                    else if(type === 'SUBREDDITS') {
+                        var srlArr = [];
+                        reddit.getSubreddits(function(subRedList) {
+                        subRedList.data.children.forEach(function(x, index) {
+                            // build subreddit list array
+                            srlArr.push(subRedList.data.children[index].data.display_name);
+                        });
+                        //console.log(srlArr);
                         
+                        // Show user a list of popular subreddits to choose from
+                        inquirer.prompt({
+                            type: 'list',
+                            name: 'subreddits',
+                            message: 'Choose from the list of popular subreddits',
+                            choices: srlArr
+                        }).then(function(answer) {
+                            var subrName = convertLower(answer.subreddits);
+                            callback(subrName);
+                        });
+                    });
+                    }
+                }
+                
+                subMenu(answers.menu, function(srAnswer){
+                    console.log("You are browsing the " + srAnswer + " subreddit!\n");
+                    reddit.getSubreddit(srAnswer, function(subRedName){
+                
                         var srObj = {};
                         subRedName.data.children.forEach(function(x, index) {
                             // build subreddit object
@@ -119,53 +146,23 @@ function redditRun() {
                                 subredditName:subRedName.data.children[index].data.subreddit
                             };
                         });
-
+        
                         for(var prop in srObj) {
                             postedTime(srObj[prop].created, currentTime);
                             console.log(srObj[prop].title.bold + "\n" + srObj[prop].url.blue + "\nsubmitted: ".red + posted + " | ".red + up + srObj[prop].ups + " | ".red + dwn + srObj[prop].downs + " | author: ".red + srObj[prop].author + " | subreddit: ".red + srObj[prop].subredditName + "\n");
                         }
                         // Error msg for if the subreddit name entered by the user doesn't exist
                         if (isEmpty(srObj) === true) {
-                            console.log("Sorry, " + subrName + " is not actually a subreddit, please enter a different subreddit or try choosing from the list of popular subreddits in the menu below.\n");
+                            console.log("Sorry, " + srAnswer + " is not actually a subreddit, please enter a different subreddit or try choosing from the list of popular subreddits in the menu below.\n");
                         }
-                        console.log(redditRun());
+                        redditRun();
                     });
                 });
             }
-            else if (answers.menu === 'SUBREDDITS') {
-                var srlArr = [];
-                reddit.getSubreddits(function(subRedList) {
-                    subRedList.data.children.forEach(function(x, index) {
-                        // build subreddit list array
-                        srlArr.push(subRedList.data.children[index].data.display_name);
-                    });
-                    //console.log(srlArr);
-                    
-                    // Show user a list of popular subreddits to choose from
-                    inquirer.prompt({
-                        type: 'list',
-                        name: 'subreddits',
-                        message: 'Choose from the list of popular subreddits',
-                        choices: srlArr
-                    }).then(function(answer) {
-                        console.log(answer.subreddits);
-                        if (srlArr.indexOf(answer) > -1) {
-                            
-                            
-                        }
-                    });
-                });
 
-                    // for(var prop in srlObj) {
-                    //     postedTime(srlObj[prop].created, currentTime);
-                    //     console.log(srlObj[prop].title.bold + "\n" + srlObj[prop].url.blue + "\nsubmitted: ".red + posted + " | ".red + up + srlObj[prop].ups + " | ".red + dwn + srlObj[prop].downs + " | author: ".red + srlObj[prop].author + " | subreddit: ".red + srlObj[prop].subredditName + "\n");
-                    // }
-
-                console.log(redditRun());
-            }
             else {
                 console.log(answers.menu);
-                console.log(redditRun());
+                redditRun();
             }
         }
     );
