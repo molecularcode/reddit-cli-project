@@ -37,12 +37,12 @@ var dwn = emoji.get('thumbsdown').red;
 function convertLower(str) {
     return str.toLowerCase().replace(/\s+/g, '');
 }
-function isEmpty(obj) {
+function isEmpty(obj, srAnswer, callback) {
     for(var prop in obj) {
         if(obj.hasOwnProperty(prop))
             return false;
     }
-    return true && JSON.stringify(obj) === JSON.stringify({});
+    callback("Sorry, '" + srAnswer + "' is not actually a subreddit, please enter a different subreddit or try choosing from the list of popular subreddits in the menu below.\n");
 }
 
 
@@ -75,33 +75,62 @@ function redditRun() {
                     posted = (postedDays + " days ago");
                 }
             }
+
+            function buildObj(page, callback) {
+                var postObj = {};
+                page.data.children.forEach(function(x, index) {
+                    // build subreddit object
+                    postObj [page.data.children[index].data.title] = {
+                        id: page.data.children[index].data.id,
+                        title: page.data.children[index].data.title,
+                        url: page.data.children[index].data.url,
+                        ups: page.data.children[index].data.ups,
+                        downs: page.data.children[index].data.downs,
+                        author: page.data.children[index].data.author,
+                        created: page.data.children[index].data.created_utc,
+                        subredditName: page.data.children[index].data.subreddit
+                    };
+                });
+                callback(postObj);
+            }
+                
+            function objToArr(postObj, callback) {
+                var inqObj = {};
+                var postArr = [];
+                
+                for(var prop in postObj) {
+                    postedTime(postObj[prop].created, currentTime); // calculate time diff
+                    // build inquirer object
+                    inqObj = {
+                        name: postObj[prop].title,
+                        value: postObj[prop]
+                    };
+                    postArr.push(inqObj);
+                }
+
+                    //postArr.push(postObj[prop].title.bold + "\n" + /*postObj[prop].url.blue + */"\nsubmitted: ".red + posted + " | ".red + up + postObj[prop].ups + " | ".red + dwn + postObj[prop].downs + " | author: ".red + postObj[prop].author + " | subreddit: ".red + postObj[prop].subredditName + "\n");
+                    //}
+
+                callback(postArr/*inqObj*/);
+            }
+
             // If user wants Homepage
             if (answers.menu === 'HOMEPAGE') {
-                reddit.getHomepage(function(result){
-                    var hpObj = {};
-                    result.data.children.forEach(function(x, index) {
-                        // build homepage object
-                        hpObj[result.data.children[index].data.id] = {
-                            title:result.data.children[index].data.title,
-                            url:result.data.children[index].data.url,
-                            ups:result.data.children[index].data.ups,
-                            downs:result.data.children[index].data.downs,
-                            author:result.data.children[index].data.author,
-                            created:result.data.children[index].data.created_utc,
-                            subredditName:result.data.children[index].data.subreddit
-                        };
+                reddit.getHomepage(function(subRedName){
+                    console.log("You're browsing the front page of reddit!\n");
+                    buildObj(subRedName, function(postObj) {
+                        objToArr(postObj, function(postArr) {
+                            postArr.forEach(function(x, index) {
+                                console.log(postArr[index]);
+                            });
+                            redditRun();
+                        });
                     });
-
-                    for(var prop in hpObj) {
-                        postedTime(hpObj[prop].created, currentTime);
-                        console.log(hpObj[prop].title.bold + "\n" + hpObj[prop].url.blue + "\nsubmitted: ".red + posted + " | ".red + up + hpObj[prop].ups + " | ".red + dwn + hpObj[prop].downs + " | author: ".red + hpObj[prop].author + " | subreddit: ".red + hpObj[prop].subredditName + "\n");
-                    }
-                    console.log(redditRun());
                 });
             }
-            
-            // If users wants a subreddit and allow user to enter the name of the subreddit or choose from a list of popular subreddits
-            else if(answers.menu === 'SUBREDDIT' || answers.menu === 'SUBREDDITS') {
+           
+            // If users wants a subreddit and allow user to enter the name of the subreddit or choose from a list of popular subreddits 
+            else if (answers.menu === 'SUBREDDIT' || answers.menu === 'SUBREDDITS') {
 
                 function subMenu(type, callback){
                     if(type === 'SUBREDDIT') {
@@ -121,7 +150,6 @@ function redditRun() {
                             // build subreddit list array
                             srlArr.push(subRedList.data.children[index].data.display_name);
                         });
-                        //console.log(srlArr);
                         
                         // Show user a list of popular subreddits to choose from
                         inquirer.prompt({
@@ -136,43 +164,27 @@ function redditRun() {
                     });
                     }
                 }
-                
-                subMenu(answers.menu, function(srAnswer){
-                    console.log("You are browsing the " + "'".magenta + srAnswer.magenta + "'".magenta + " subreddit!\n");
-                    reddit.getSubreddit(srAnswer, function(subRedName){
-                
-                        var srObj = {};
-                        var postArr = [];
-                        subRedName.data.children.forEach(function(x, index) {
-                            // build subreddit object
-                            srObj [subRedName.data.children[index].data.id] = {
-                                id:subRedName.data.children[index].data.id,
-                                title:subRedName.data.children[index].data.title,
-                                url:subRedName.data.children[index].data.url,
-                                ups:subRedName.data.children[index].data.ups,
-                                downs:subRedName.data.children[index].data.downs,
-                                author:subRedName.data.children[index].data.author,
-                                created:subRedName.data.children[index].data.created_utc,
-                                subredditName:subRedName.data.children[index].data.subreddit
-                            };
-                        });
-        
-                        for(var prop in srObj) {
-                            postedTime(srObj[prop].created, currentTime); // calculate time diff
-                            // push posts to an array, formatted for output
-                            postArr.push(srObj[prop].title.bold + "\n" + srObj[prop].url.blue + "\nsubmitted: ".red + posted + " | ".red + up + srObj[prop].ups + " | ".red + dwn + srObj[prop].downs + " | author: ".red + srObj[prop].author + " | subreddit: ".red + srObj[prop].subredditName + "\n");
-                        }
-                        postArr.forEach(function(x, index) {
-                            console.log(postArr[index]);
-                        });
 
-                        // Error msg for if the subreddit name entered by the user doesn't exist
-                        if (isEmpty(srObj) === true) {
-                            console.log("Sorry, '" + srAnswer + "' is not actually a subreddit, please enter a different subreddit or try choosing from the list of popular subreddits in the menu below.\n");
-                        }
-                        
-                        
-                        redditRun();
+                subMenu(answers.menu, function(srAnswer){
+                    console.log("You're browsing the " + "'".magenta + srAnswer.magenta + "'".magenta + " subreddit!\n");
+                    reddit.getSubreddit(srAnswer, function(subRedName){
+                        buildObj(subRedName, function(postObj) {
+                            objToArr(postObj, function(postArr) {
+                                inquirer.prompt({
+                                    type: 'list',
+                                    name: 'srClickable',
+                                    message: 'Reddit Posts',
+                                    choices: postArr
+                                }).then(function(answer) {
+                                    console.log('\033c');
+                                    console.log(answer.srClickable);
+                                });
+                                isEmpty(postObj, srAnswer, function(msg) {
+                                    console.log(msg);
+                                });
+                                //redditRun();
+                            });
+                        });
                     });
                 });
             }
@@ -185,4 +197,5 @@ function redditRun() {
     );
 }
 
+console.log('\033c');
 redditRun();
