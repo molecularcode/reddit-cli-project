@@ -1,3 +1,12 @@
+/*  Basic feature: the main menu
+--------------------------------------------------------------------------------------- */
+//  When the user chooses the homepage option, you should display the list of posts from the getHomepage function you created previously. For each post, list at least some of the info that appears on reddit: title, url, votes, username. After the list of posts is displayed, you should display the main menu again.
+
+
+/*  Basic feature: subreddit posts
+--------------------------------------------------------------------------------------- */
+//  When the user chooses the subreddit posts option, you should ask him -- again using inquirer -- which subreddit he wants to see. Then, display the list of posts in the same way as the homepage.
+
 // import my reddit module file
 var reddit = require("./lib/reddit.js");
 
@@ -10,19 +19,12 @@ var currentTime = Math.floor(new Date().getTime() / 1000); // in seconds
 var up = emoji.get('thumbsup').green;
 var dwn = emoji.get('thumbsdown').red;
 
-//console.log(util.inspect(reddit, { showHidden: true, depth: 3, colors: true }));
 
-/* Basic feature: the main menu
---------------------------------------------------------------------------------------- */
-//  When the user chooses the homepage option, you should display the list of posts from the getHomepage function you created previously. For each post, list at least some of the info that appears on reddit: title, url, votes, username. After the list of posts is displayed, you should display the main menu again.
-
+// Menu
 var menuChoices = [
-    {
-        name: 'Show reddit homepage',
-        value: 'HOMEPAGE'
-    },
+    {name: 'Show reddit homepage', value: 'HOMEPAGE'},
     {name: 'Show subreddit', value: 'SUBREDDIT'},
-    {name: 'List subreddits', value: 'SUBREDDITS'},
+    {name: 'List subreddits', value: 'SUBREDDITS'}
 ];
 
 function redditRun() {
@@ -50,8 +52,6 @@ function redditRun() {
     
                     function postedTime(postedTime, currentTime) {
                         var postedMins = Math.floor((currentTime - postedTime) / 60);
-                        //posted = postedMins;
-                        //console.log(postedTime, currentTime, posted);
                         if (postedMins < 60) {
                             posted = Math.round(postedMins) + " minutes ago";
                         }
@@ -71,6 +71,9 @@ function redditRun() {
                     }
                     console.log(redditRun());
                 });
+            }
+            else if(answers.menu === 'SUBREDDIT') {
+                
             }
             else {
                 console.log(answers.menu);
