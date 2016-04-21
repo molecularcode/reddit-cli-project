@@ -7,7 +7,7 @@
 --------------------------------------------------------------------------------------- */
 //  When the user chooses the subreddit posts option, you should ask him -- again using inquirer -- which subreddit he wants to see. Then, display the list of posts in the same way as the homepage.
 
-/*  3 - Feature: list of subreddits :star:
+/*  3 - Feature: list of subreddits *
 --------------------------------------------------------------------------------------- */
 //  When the user chooses the list of subreddits option, you should load the list of subreddits using the getSubreddits function you created previously. Then, using inquirer, show the list of subreddits to the user. The user will be able to choose a subreddit to display its posts, or go back to the main menu. You can use an Inquirer Separator to create a visual separation between the list of subreddits and the "go back to main menu" option.
 
@@ -42,7 +42,7 @@ function isEmpty(obj) {
 var menuChoices = [
     {name: 'Show reddit homepage', value: 'HOMEPAGE'},
     {name: 'Show subreddit', value: 'SUBREDDIT'},
-    {name: 'List subreddits', value: 'SUBREDDITS'}
+    {name: 'List popular subreddits', value: 'SUBREDDITS'}
 ];
 
 function redditRun() {
@@ -95,16 +95,16 @@ function redditRun() {
             else if(answers.menu === 'SUBREDDIT') {
                 inquirer.prompt({
                     type: 'inputs',
-                    name: 'subreddits',
+                    name: 'subreddit',
                     message: 'Which subreddit do you want to browse?',
                 }).then(function(answer) {
-                    var subrName = convertLower(answer.subreddits);
+                    var subrName = convertLower(answer.subreddit);
                     console.log("You are browsing the " + subrName + " subreddit!\n");
                     reddit.getSubreddit(subrName, function(subRedName){
                         
                         var srObj = {};
                         subRedName.data.children.forEach(function(x, index) {
-                            // build homepage object
+                            // build subreddit object
                             srObj[subRedName.data.children[index].data.id] = {
                                 title:subRedName.data.children[index].data.title,
                                 url:subRedName.data.children[index].data.url,
@@ -122,11 +122,42 @@ function redditRun() {
                         }
                         // Error msg for if the subreddit name entered by the user doesn't exist
                         if (isEmpty(srObj) === true) {
-                            console.log("Sorry, " + subrName + " is not actually a subreddit, please enter a different subreddit or try choosing from the list of subreddits in the menu below.\n");
+                            console.log("Sorry, " + subrName + " is not actually a subreddit, please enter a different subreddit or try choosing from the list of popular subreddits in the menu below.\n");
                         }
                         console.log(redditRun());
                     });
                 });
+            }
+            else if (answers.menu === 'SUBREDDITS') {
+                var srlArr = [];
+                reddit.getSubreddits(function(subRedList) {
+                    subRedList.data.children.forEach(function(x, index) {
+                        // build subreddit list array
+                        srlArr.push(subRedList.data.children[index].data.display_name);
+                    });
+                    //console.log(srlArr);
+                    
+                    // Show user a list of popular subreddits to choose from
+                    inquirer.prompt({
+                        type: 'list',
+                        name: 'subreddits',
+                        message: 'Choose from the list of popular subreddits',
+                        choices: srlArr
+                    }).then(function(answer) {
+                        console.log(answer.subreddits);
+                        if (srlArr.indexOf(answer) > -1) {
+                            
+                            
+                        }
+                    });
+                });
+
+                    // for(var prop in srlObj) {
+                    //     postedTime(srlObj[prop].created, currentTime);
+                    //     console.log(srlObj[prop].title.bold + "\n" + srlObj[prop].url.blue + "\nsubmitted: ".red + posted + " | ".red + up + srlObj[prop].ups + " | ".red + dwn + srlObj[prop].downs + " | author: ".red + srlObj[prop].author + " | subreddit: ".red + srlObj[prop].subredditName + "\n");
+                    // }
+
+                console.log(redditRun());
             }
             else {
                 console.log(answers.menu);
