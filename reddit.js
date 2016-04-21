@@ -107,11 +107,7 @@ function redditRun() {
                     };
                     postArr.push(inqObj);
                 }
-
-                    //postArr.push(postObj[prop].title.bold + "\n" + /*postObj[prop].url.blue + */"\nsubmitted: ".red + posted + " | ".red + up + postObj[prop].ups + " | ".red + dwn + postObj[prop].downs + " | author: ".red + postObj[prop].author + " | subreddit: ".red + postObj[prop].subredditName + "\n");
-                    //}
-
-                callback(postArr/*inqObj*/);
+                callback(postArr);
             }
 
             // If user wants Homepage
@@ -120,10 +116,16 @@ function redditRun() {
                     console.log("You're browsing the front page of reddit!\n");
                     buildObj(subRedName, function(postObj) {
                         objToArr(postObj, function(postArr) {
-                            postArr.forEach(function(x, index) {
-                                console.log(postArr[index]);
+                            inquirer.prompt({
+                                type: 'list',
+                                name: 'srClickable',
+                                message: 'Reddit Posts',
+                                choices: postArr
+                            }).then(function(answer) {
+                                console.log('\033c');
+                                console.log(answer.srClickable.title.bold + "\n" + "\n" + answer.srClickable.url.blue + "\nsubmitted: ".red + posted + " | ".red + up + answer.srClickable.ups + " | ".red + dwn + answer.srClickable.downs + " | author: ".red + answer.srClickable.author + " | subreddit: ".red + answer.srClickable.subredditName + "\n");
+                                redditRun();
                             });
-                            redditRun();
                         });
                     });
                 });
@@ -177,12 +179,13 @@ function redditRun() {
                                     choices: postArr
                                 }).then(function(answer) {
                                     console.log('\033c');
-                                    console.log(answer.srClickable);
+                                    console.log(answer.srClickable.title.bold + "\n" + "\n" + answer.srClickable.url.blue + "\nsubmitted: ".red + posted + " | ".red + up + answer.srClickable.ups + " | ".red + dwn + answer.srClickable.downs + " | author: ".red + answer.srClickable.author + " | subreddit: ".red + answer.srClickable.subredditName + "\n");
+                                    redditRun();
                                 });
                                 isEmpty(postObj, srAnswer, function(msg) {
                                     console.log(msg);
+                                    redditRun();
                                 });
-                                //redditRun();
                             });
                         });
                     });
