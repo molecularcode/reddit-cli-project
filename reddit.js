@@ -92,7 +92,11 @@ function redditRun() {
                 });
             }
             // If users wants a subreddit and allow user to enter the name of the subreddit
-            else if(answers.menu === 'SUBREDDIT') {
+            else if(answers.menu === 'SUBREDDIT' || answers.menu === 'SUBREDDITS') {
+                
+                
+                
+                
                 inquirer.prompt({
                     type: 'inputs',
                     name: 'subreddit',
