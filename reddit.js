@@ -25,25 +25,12 @@ var reddit = require("./lib/reddit.js");
 // Variables
 // > npm install inquirer, colors, util
 var inquirer = require('inquirer');
-var colors = require('colors');
+require('colors');
 var emoji = require('node-emoji');
 var util = require('util');
 var currentTime = Math.floor(new Date().getTime() / 1000); // in seconds
 var up = emoji.get('thumbsup').green;
 var dwn = emoji.get('thumbsdown').red;
-
-
-// Functions
-function convertLower(str) {
-    return str.toLowerCase().replace(/\s+/g, '');
-}
-function isEmpty(obj, srAnswer, callback) {
-    for(var prop in obj) {
-        if(obj.hasOwnProperty(prop))
-            return false;
-    }
-    callback("Sorry, '" + srAnswer + "' is not actually a subreddit, please enter a different subreddit or try choosing from the list of popular subreddits in the menu below.\n");
-}
 
 
 // Menu
@@ -141,7 +128,7 @@ function redditRun() {
                             name: 'subreddit',
                             message: 'Which subreddit do you want to browse?',
                         }).then(function (answer) {
-                            var subrName = convertLower(answer.subreddit);
+                            var subrName = reddit.convertLower(answer.subreddit);
                             callback(subrName);
                         });
                     }
@@ -160,7 +147,7 @@ function redditRun() {
                             message: 'Choose from the list of popular subreddits',
                             choices: srlArr
                         }).then(function(answer) {
-                            var subrName = convertLower(answer.subreddits);
+                            var subrName = reddit.convertLower(answer.subreddits);
                             callback(subrName);
                         });
                     });
@@ -182,7 +169,7 @@ function redditRun() {
                                     console.log(answer.srClickable.title.bold + "\n" + "\n" + answer.srClickable.url.blue + "\nsubmitted: ".red + posted + " | ".red + up + answer.srClickable.ups + " | ".red + dwn + answer.srClickable.downs + " | author: ".red + answer.srClickable.author + " | subreddit: ".red + answer.srClickable.subredditName + "\n");
                                     redditRun();
                                 });
-                                isEmpty(postObj, srAnswer, function(msg) {
+                                reddit.isEmpty(postObj, srAnswer, function(msg) {
                                     console.log(msg);
                                     redditRun();
                                 });
